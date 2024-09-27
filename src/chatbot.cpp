@@ -43,7 +43,64 @@ ChatBot::~ChatBot()
 }
 
 //// STUDENT CODE
-////
+//// Deep copying policy will be implemented. 
+ChatBot::ChatBot(const ChatBot& chatBot)
+{
+    std::cout << "ChatBot Copy Constructor" << std::endl;
+    _image = new wxBitmap(*chatBot._image); // avatar image
+
+    // data handles (not owned)
+    _currentNode = chatBot._currentNode;
+    _rootNode = chatBot._rootNode;
+    _chatLogic = chatBot._chatLogic;
+    _chatLogic->SetChatbotHandle(this);
+}
+ChatBot& ChatBot::operator =(const ChatBot& chatBot)
+{
+    std::cout << "ChatBot Copy Assignment Operator" << std::endl;
+    // data handles (not owned)
+    if (this == &chatBot) return *this;
+    delete _image;
+    _image = new wxBitmap(*chatBot._image); 
+    _currentNode = chatBot._currentNode;
+    _rootNode = chatBot._rootNode;
+    _chatLogic = chatBot._chatLogic;
+    this->_chatLogic->SetChatbotHandle(this);
+    return *this;
+}
+ChatBot::ChatBot(ChatBot&& chatBot)
+{
+    std::cout << "ChatBot Move Constructor" << std::endl;
+    _image = chatBot._image; 
+    // _currentNode = chatBot._currentNode;
+    _currentNode = chatBot._currentNode;
+    _rootNode = chatBot._rootNode;
+    _chatLogic = chatBot._chatLogic;
+    _chatLogic->SetChatbotHandle(this);
+    chatBot._image = nullptr;
+    chatBot._currentNode = nullptr;
+    chatBot._rootNode = nullptr;
+    chatBot._chatLogic = nullptr;
+
+}
+ChatBot &ChatBot::operator=(ChatBot&& chatBot)
+{
+    std::cout << "ChatBot Move Assignment Operator" << std::endl;
+    if (this == &chatBot) return *this;
+    delete _image;
+
+    _image = chatBot._image; 
+    _currentNode = chatBot._currentNode;
+    _rootNode = chatBot._rootNode;
+    _chatLogic = chatBot._chatLogic;
+    _chatLogic->SetChatbotHandle(this);
+
+    chatBot._currentNode = nullptr;
+    chatBot._image = nullptr;
+    chatBot._rootNode = nullptr;
+    chatBot._chatLogic = nullptr;
+    return *this;
+}
 
 ////
 //// EOF STUDENT CODE
@@ -86,13 +143,11 @@ void ChatBot::SetCurrentNode(GraphNode *node)
 {
     // update pointer to current node
     _currentNode = node;
-
     // select a random node answer (if several answers should exist)
     std::vector<std::string> answers = _currentNode->GetAnswers();
     std::mt19937 generator(int(std::time(0)));
     std::uniform_int_distribution<int> dis(0, answers.size() - 1);
     std::string answer = answers.at(dis(generator));
-
     // send selected node answer to user
     _chatLogic->SendMessageToUser(answer);
 }
